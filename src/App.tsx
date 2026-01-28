@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 // Pages
 import HomePage from "./pages/Home/HomePage";
@@ -16,41 +16,57 @@ import Navbar from "./components/Navbar";
 import { AppSidebar } from "./components/Sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
+// Layout wrapper que decide si mostrar sidebar y navbar
+function AppLayout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
+
+  // Si es la página de login, mostrar solo el contenido sin layout
+  if (isLoginPage) {
+    return <div className="min-h-screen w-full bg-bg-main">{children}</div>;
+  }
+
+  // Para todas las demás páginas, mostrar con sidebar y navbar
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-bg-main">
+        <AppSidebar />
+
+        <SidebarInset className="flex-1">
+          <Navbar />
+
+          <main className="p-6">{children}</main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-bg-main">
-          <AppSidebar />
+      <AppLayout>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
 
-          <SidebarInset className="flex-1">
-            <Navbar />
+          <Route path="/" element={<HomePage />} />
 
-            <main className="p-6">
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
+          <Route path="/actividad" element={<ActivityPage />} />
 
-                <Route path="/" element={<HomePage />} />
+          <Route
+            path="/usuarioss"
+            element={
+              <AuthGuard>
+                <RoleMiddleware role="admin">
+                  <UsuariosPage />
+                </RoleMiddleware>
+              </AuthGuard>
+            }
+          />
 
-                <Route path="/actividad" element={<ActivityPage />} />
-
-                <Route
-                  path="/usuarioss"
-                  element={
-                    <AuthGuard>
-                      <RoleMiddleware role="admin">
-                        <UsuariosPage />
-                      </RoleMiddleware>
-                    </AuthGuard>
-                  }
-                />
-
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </main>
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AppLayout>
     </BrowserRouter>
   );
 }
