@@ -1,10 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Pages
 import HomePage from "./pages/Home/HomePage";
-import ListarLibros from "./pages/Libros/ListarLibros";
-import RegistrarLibro from "./pages/Libros/RegistrarLibro";
-import PrestamosPage from "./pages/Prestamos/PrestamosPage";
+import ActivityPage from "./pages/Actividad/Activity";
 import UsuariosPage from "./pages/Usuarios/UsuariosPage";
 import LoginPage from "./pages/Login/LoginPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
@@ -15,79 +13,44 @@ import RoleMiddleware from "./middlewares/RoleMiddleware";
 
 // Components
 import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
+import { AppSidebar } from "./components/Sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 function App() {
   return (
     <BrowserRouter>
-      {/* "flex" reemplaza al display:flex. "bg-bg-main" usa tu color personalizado */}
-      <div className="flex min-h-screen bg-bg-main">
-        
-        <Sidebar />
-        
-        {/* "flex-1" hace que ocupe todo el ancho restante */}
-        <div className="flex-1">
-          <Navbar />
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full bg-bg-main">
+          <AppSidebar />
 
-          {/* "p-6" añade espacio interno para que el contenido no pegue a las orillas */}
-          <main className="p-6">
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
+          <SidebarInset className="flex-1">
+            <Navbar />
 
-              <Route
-                path="/"
-                element={
-                  <AuthGuard>
-                    <HomePage />
-                  </AuthGuard>
-                }
-              />
+            <main className="p-6">
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
 
-              <Route
-                path="/libros"
-                element={
-                  <AuthGuard>
-                    <ListarLibros />
-                  </AuthGuard>
-                }
-              />
+                <Route path="/" element={<HomePage />} />
 
-              <Route
-                path="/libros/registrar"
-                element={
-                  <AuthGuard>
-                    <RoleMiddleware role="admin">
-                      <RegistrarLibro />
-                    </RoleMiddleware>
-                  </AuthGuard>
-                }
-              />
+                <Route path="/actividad" element={<ActivityPage />} />
 
-              <Route
-                path="/prestamos"
-                element={
-                  <AuthGuard>
-                    <PrestamosPage />
-                  </AuthGuard>
-                }
-              />
+                <Route
+                  path="/usuarioss"
+                  element={
+                    <AuthGuard>
+                      <RoleMiddleware role="admin">
+                        <UsuariosPage />
+                      </RoleMiddleware>
+                    </AuthGuard>
+                  }
+                />
 
-              <Route
-                path="/usuarios"
-                element={
-                  <AuthGuard>
-                    <RoleMiddleware role="admin">
-                      <UsuariosPage />
-                    </RoleMiddleware>
-                  </AuthGuard>
-                }
-              />
-
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </main>
+          </SidebarInset>
         </div>
-      </div>
+      </SidebarProvider>
     </BrowserRouter>
   );
 }
