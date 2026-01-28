@@ -7,21 +7,20 @@ export default function NotFoundPage() {
       <div className="flex max-w-md flex-col items-center text-center space-y-6">
         {/* Icono animado o destacado */}
         <div className="bg-red-50 p-4 rounded-full animate-bounce-slow">
-            <AlertCircle className="w-16 h-16 text-red-600" />
+          <AlertCircle className="w-16 h-16 text-red-600" />
         </div>
 
         {/* Título Grande */}
-        <h1 className="text-9xl font-black tracking-tighter opacity-10">
-          404
-        </h1>
-        
+        <h1 className="text-9xl font-black tracking-tighter opacity-10">404</h1>
+
         <div className="absolute mt-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mt-12">
             Página no encontrada
-            </h2>
-            <p className="mt-4 text-lg text-gray-600 font-medium">
-            Lo sentimos, no pudimos encontrar la página que buscas. Pudo haber sido eliminada o la URL es incorrecta.
-            </p>
+          </h2>
+          <p className="mt-4 text-lg text-gray-600 font-medium">
+            Lo sentimos, no pudimos encontrar la página que buscas. Pudo haber
+            sido eliminada o la URL es incorrecta.
+          </p>
         </div>
 
         {/* Espaciado para compensar el absolute */}
@@ -35,7 +34,7 @@ export default function NotFoundPage() {
           Volver al Inicio
         </Link>
       </div>
-      
+
       {/* Footer simple */}
       <footer className="absolute bottom-8 text-sm text-gray-400">
         Biblioteca UTT &copy; {new Date().getFullYear()}
