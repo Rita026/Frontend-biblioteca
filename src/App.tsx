@@ -7,6 +7,7 @@ import RegistrarLibro from "./pages/Libros/RegistrarLibro";
 import PrestamosPage from "./pages/Prestamos/PrestamosPage";
 import UsuariosPage from "./pages/Usuarios/UsuariosPage";
 import LoginPage from "./pages/Login/LoginPage";
+import NotFoundPage from "./pages/NotFound/NotFoundPage";
 
 // Middlewares
 import AuthGuard from "./middlewares/AuthGuard";
@@ -82,7 +83,7 @@ function App() {
                 }
               />
 
-              <Route path="*" element={<Navigate to="/" />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
         </div>
