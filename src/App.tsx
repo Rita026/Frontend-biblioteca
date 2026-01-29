@@ -14,6 +14,7 @@ import RoleMiddleware from "./middlewares/RoleMiddleware";
 // Components
 import Navbar from "./components/Navbar";
 import { AppSidebar } from "./components/Sidebar";
+import DynamicBreadcrumb from "./components/DynamicBreadcrumb";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 // Layout wrapper que decide si mostrar sidebar y navbar
@@ -34,6 +35,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
 
         <SidebarInset className="flex-1">
           <Navbar />
+          <DynamicBreadcrumb />
 
           <main className="p-6">{children}</main>
         </SidebarInset>
