@@ -6,6 +6,7 @@ import ActivityPage from "./pages/Actividad/Activity";
 import UsuariosPage from "./pages/Usuarios/UsuariosPage";
 import LoginPage from "./pages/Login/LoginPage";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
+import ServerErrorPage from "./pages/Error500/ServerErrorPage";
 
 // Middlewares
 import AuthGuard from "./middlewares/AuthGuard";
@@ -54,6 +55,8 @@ function App() {
           <Route path="/" element={<HomePage />} />
 
           <Route path="/actividad" element={<ActivityPage />} />
+          
+          <Route path="/500" element={<ServerErrorPage />} />
 
           <Route
             path="/usuarioss"
