@@ -3,27 +3,41 @@ import { AlertCircle } from "lucide-react";
 
 export default function NotFoundPage() {
   return (
-    <div 
-      className="flex min-h-screen w-full flex-col items-center justify-center bg-[#FAFAFA] p-4 text-[#0A0A0A]"
-      aria-live="assertive" 
+    // 1. Usamos <section> porque técnicamente está dentro del <main> del AppLayout
+    <section 
+      className="flex min-h-[80vh] w-full flex-col items-center justify-center bg-[#FAFAFA] p-4 text-[#0A0A0A]"
+      aria-labelledby="not-found-title"
     >
       <div className="flex max-w-md flex-col items-center text-center space-y-6 relative">
         
-        {/* Icono animado */}
-        <div className="bg-red-50 p-4 rounded-full animate-bounce">
-          <AlertCircle className="w-16 h-16 text-red-600" aria-hidden="true" />
+        {/* Icono animado (Decorativo, oculto a lectores) */}
+        <div className="bg-red-50 p-4 rounded-full animate-bounce" aria-hidden="true">
+          <AlertCircle className="w-16 h-16 text-red-600" />
         </div>
 
-        {/* Contenedor de Texto (Sin absolute para evitar encimamientos) */}
         <div className="flex flex-col items-center">
-          <h1 className="text-9xl font-black tracking-tighter opacity-5 select-none">
+          {/* 2. El "404" gigante es decorativo. 
+             - Usamos <span> en vez de <h1>.
+             - aria-hidden="true" para que el lector de pantalla no lea "cuatrocientos cuatro" antes del título real. 
+          */}
+          <span 
+            className="text-9xl font-black tracking-tighter opacity-5 select-none"
+            aria-hidden="true"
+          >
             404
-          </h1>
+          </span>
           
-          <div className="mt-[-4rem]"> {/* Ajuste fino de posición */}
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <div className="mt-[-4rem]">
+            {/* 3. Este es el verdadero título de la página.
+               - Lo cambiamos de <h2> a <h1>.
+               - Le ponemos el ID para conectarlo con la <section>.
+            */}
+            <h1 
+              id="not-found-title" 
+              className="text-3xl font-bold tracking-tight sm:text-4xl"
+            >
               Página no encontrada
-            </h2>
+            </h1>
             <p className="mt-4 text-lg text-gray-600 font-medium px-2">
               Lo sentimos, no pudimos encontrar la página que buscas. Pudo haber
               sido eliminada o la URL es incorrecta.
@@ -40,10 +54,10 @@ export default function NotFoundPage() {
         </Link>
       </div>
 
-      {/* Footer con el nombre de la institución */}
+      {/* Footer */}
       <footer className="absolute bottom-8 text-sm text-gray-400">
         Biblioteca UTT &copy; {new Date().getFullYear()}
       </footer>
-    </div>
+    </section>
   );
 }

@@ -1,3 +1,8 @@
 export default function ListarLibros() {
-  return <h1>Listar libros</h1>;
+  return (
+    <section>
+       <h1>Listar libros</h1>;
+    </section>
+  )
+ 
 }
