@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 
 export default function ServerErrorPage() {
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-[70vh] w-full overflow-hidden">
+    <section className="relative flex flex-col items-center justify-center min-h-[70vh] w-full overflow-hidden">
       
       <h1 className="absolute text-[25rem] font-black text-gray-100 select-none z-0">
         500
@@ -31,6 +31,8 @@ export default function ServerErrorPage() {
           Recargar página
         </button>
       </div>
-    </div>
+
+    </section>
+    
   );
 }
