@@ -1,10 +1,11 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
 
 export default function RoleMiddleware({
   children,
   role,
 }: {
-  children: JSX.Element;
+  children: React.ReactNode;
   role: string;
 }) {
   const userRole = localStorage.getItem("role");
