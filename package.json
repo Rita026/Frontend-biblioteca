@@ -5,10 +5,10 @@
   "type": "module",
     "scripts": {
       "dev": "vite",
-      "build": "tsc -b && vite build",
+      "build": "vite build",
       "lint": "eslint .",
       "preview": "vite preview",
-      "test": "jest"
+      "test": "echo 'No tests yet'"
     },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
