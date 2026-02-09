@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { test, expect } from "vitest";
 
 test("Frontend corre", () => {
   expect(2 + 2).toBe(4);
