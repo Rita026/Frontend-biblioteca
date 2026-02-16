@@ -2,49 +2,36 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
     const history = useHistory();
 
-    const handleLogin = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        // Test credentials
-        if (username === 'admin' && password === 'admin') {
-            history.push('/home'); // navigate to home on successful login
+        if (email === 'admin' && password === 'admin') {
+            // Navigate to home page on successful login
+            history.push('/home');
         } else {
-            alert('Invalid credentials.');
+            // Handle error
+            setError('Invalid credentials');
         }
     };
 
     return (
         <div>
-            <h1>Login</h1>
-            <form onSubmit={handleLogin}>
+            <h2>Login Page</h2>
+            {error && <p style={{color: 'red'}}>{error}</p>}
+            <form onSubmit={handleSubmit}>
                 <div>
-                    <label>
-                        Username:
-                        <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(e); }}
-                            required
-                        />
-                    </label>
+                    <label>Email:</label>
+                    <input type='email' value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div>
-                    <label>
-                        Password:
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(e); }}
-                            required
-                        />
-                    </label>
+                    <label>Password:</label>
+                    <input type='password' value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
-                <button type="submit">Login</button>
+                <button type='submit'>Login</button>
             </form>
         </div>
     );
