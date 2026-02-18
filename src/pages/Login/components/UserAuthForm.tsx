@@ -17,10 +17,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { authApi } from "@/APIs/auth.api"
 
 const formSchema = z.object({
-  email: z.string().min(1, { message: "Username or Email is required" }),
-  password: z.string().min(1, { message: "Password is required" }),
+  email: z.string().email({ message: "Debe ser un email válido" }),
+  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres" }),
 })
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
@@ -42,16 +43,21 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     setIsLoading(true)
     setError("")
 
-    // Simulate API call
-    setTimeout(() => {
-      if (values.email === "admin" && values.password === "admin") {
-        setIsLoading(false)
-        navigate("/home") // Redirects to home/dashboard
+    try {
+      await authApi.login(values);
+      navigate("/home");
+    } catch (err: any) {
+      console.error("Login error:", err);
+      // Validar si el error viene con detalles de Zod (backend)
+      if (err.errors && Array.isArray(err.errors)) {
+        const errorMessages = err.errors.map((e: any) => e.message).join(", ");
+        setError(errorMessages);
       } else {
-        setIsLoading(false)
-        setError("Invalid credentials. Use admin/admin")
+        setError(err.message || "Credenciales inválidas");
       }
-    }, 1000)
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
