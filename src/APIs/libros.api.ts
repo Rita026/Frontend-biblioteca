@@ -1,3 +1,5 @@
+import apiClient from "./axios.config";
+
 export interface Libro {
   codigo_biblioteca: string;
   titulo: string;
@@ -12,35 +14,22 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-const API_BASE_URL = "http://localhost:3000/api";
-
 /**
  * Obtiene la lista de libros desde la API
  * @returns Promise con la lista de libros
  */
 export const getLibros = async (): Promise<Libro[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/libros`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await apiClient.get<ApiResponse<Libro[]>>("/libros");
 
-    if (!response.ok) {
-      throw new Error(`Error al obtener libros: ${response.statusText}`);
+    if (!response.data.success) {
+      throw new Error(response.data.message || "Error al obtener los libros");
     }
 
-    const result: ApiResponse<Libro[]> = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.message || "Error al obtener los libros");
-    }
-
-    return result.data;
-  } catch (error) {
+    return response.data.data;
+  } catch (error: any) {
     console.error("Error en getLibros:", error);
-    throw error;
+    throw error.response?.data || error;
   }
 };
 
@@ -51,26 +40,17 @@ export const getLibros = async (): Promise<Libro[]> => {
  */
 export const getLibroByCodigo = async (codigo: string): Promise<Libro> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/libros/${codigo}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await apiClient.get<ApiResponse<Libro>>(
+      `/libros/${codigo}`,
+    );
 
-    if (!response.ok) {
-      throw new Error(`Error al obtener el libro: ${response.statusText}`);
+    if (!response.data.success) {
+      throw new Error(response.data.message || "Error al obtener el libro");
     }
 
-    const result: ApiResponse<Libro> = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.message || "Error al obtener el libro");
-    }
-
-    return result.data;
-  } catch (error) {
+    return response.data.data;
+  } catch (error: any) {
     console.error("Error en getLibroByCodigo:", error);
-    throw error;
+    throw error.response?.data || error;
   }
 };
