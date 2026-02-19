@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
 
 // Pages
 import HomePage from "./pages/Home/HomePage";
@@ -52,15 +57,28 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/home" element={<HomePage />} />
+          <Route
+            path="/"
+            element={
+              <AuthGuard>
+                <HomePage />
+              </AuthGuard>
+            }
+          />
 
-          <Route path="/actividad" element={<ActivityPage />} />
-          
+          <Route
+            path="/actividad"
+            element={
+              <AuthGuard>
+                <ActivityPage />
+              </AuthGuard>
+            }
+          />
+
           <Route path="/500" element={<ServerErrorPage />} />
 
           <Route
-            path="/usuarioss"
+            path="/usuarios"
             element={
               <AuthGuard>
                 <RoleMiddleware role="admin">
