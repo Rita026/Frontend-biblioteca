@@ -138,3 +138,48 @@
         border-width: 0;
     }
 }
+
+/* ===========================================
+   ANIMACIONES DEL SEGUNDO CORTE
+   =========================================== */
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.fade-in.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.button-animate {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.button-animate:hover,
+.button-animate:focus-visible {
+  transform: scale(1.03);
+  background-color: var(--primary);
+}
+
+.card-animate {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card-animate:hover,
+.card-animate:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
