@@ -12,44 +12,27 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-// Menu items.
 const items = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Actividad",
-    url: "/actividad",
-    icon: Inbox,
-  },
-  {
-    title: "Usuarios",
-    url: "/usuarios",
-    icon: Users,
-  },
-  {
-    title: "Log out",
-    url: "/login",
-    icon: LogOut,
-  },
+  { title: "Dashboard", url: "/", icon: Home },
+  { title: "Actividad", url: "/actividad", icon: Inbox },
+  { title: "Usuarios", url: "/usuarios", icon: Users },
+  { title: "Log out", url: "/login", icon: LogOut },
 ];
 
 export function AppSidebar() {
   const location = useLocation();
 
   return (
-    <Sidebar>
+    <Sidebar className="fade-in show">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel className="fade-in show">Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
                 const isActive = location.pathname === item.url;
                 return (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.title} className="fade-in show">
                     <SidebarMenuButton asChild isActive={isActive}>
                       <Link to={item.url}>
                         <item.icon />
