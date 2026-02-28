@@ -1,3 +1,7 @@
 export default function UsuariosPage() {
-  return <h1>Usuarios</h1>;
+  return (
+    <section className="fade-in show p-6">
+      <h1 className="text-2xl font-bold fade-in show">Usuarios</h1>
+    </section>
+  );
 }
