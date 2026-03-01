@@ -141,7 +141,7 @@ export default function UsuariosPage() {
   };
 
   if (isLoading) {
-    return <Loader fullScreen size="lg" text="Cargando..." />;
+    return <Loader fullScreen size="lg" text="Cargando usuarios..." />;
   }
 
   return (
