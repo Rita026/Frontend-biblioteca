@@ -46,7 +46,15 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     setError("");
 
     try {
-      await authApi.login(values);
+      const response = await authApi.login(values);
+      
+      // Guardar el rol en localStorage
+      if (response.data?.rol) {
+        localStorage.setItem("role", response.data.rol);
+      } else if (response.rol) {
+        localStorage.setItem("role", response.rol);
+      }
+      
       navigate("/");
     } catch (err: any) {
       console.error("Login error:", err);
