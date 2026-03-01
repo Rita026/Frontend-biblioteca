@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -22,8 +22,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests
-        run: npm test || echo "Sin tests aún"
+      - name: Run all tests
+        run: npm test
+
+      - name: Run accessibility tests
+        run: npm run test:a11y
 
       - name: Build project
         run: npm run build
