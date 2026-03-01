@@ -237,7 +237,6 @@ export default function UsuariosPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -245,7 +244,7 @@ export default function UsuariosPage() {
           <TableBody>
             {usuarios.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={3} className="text-center py-8 text-gray-500">
                   Sin usuarios
                 </TableCell>
               </TableRow>
@@ -253,7 +252,6 @@ export default function UsuariosPage() {
               usuarios.map((usuario) => (
                 <TableRow key={usuario.id}>
                   <TableCell className="font-medium">{usuario.nombre_completo}</TableCell>
-                  <TableCell>{usuario.email || "-"}</TableCell>
                   <TableCell>
                     <span className={`px-2 py-1 rounded text-sm ${
                       usuario.rol === "admin" ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800"
