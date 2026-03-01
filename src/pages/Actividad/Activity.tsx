@@ -10,7 +10,7 @@ export default function ActivityPage() {
         setLoading(true);
 
         // TODO: coloca tu endpoint real cuando esté listo
-        const res = await fetch("http://localhost:3001/logs");
+        const res = await fetch("http://localhost:3000/api/actividades");
         const data = await res.json();
 
         setLogs(Array.isArray(data) ? data : []);
