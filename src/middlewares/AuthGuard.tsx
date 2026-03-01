@@ -9,11 +9,19 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await authApi.me();
+        const user = await authApi.me();
         setIsAuthenticated(true);
+        
+        // Sincronizar el rol desde la respuesta del backend
+        if (user.data?.rol) {
+          localStorage.setItem("role", user.data.rol);
+        } else if (user.rol) {
+          localStorage.setItem("role", user.rol);
+        }
       } catch (error) {
         console.error("No autenticado:", error);
         setIsAuthenticated(false);
+        localStorage.removeItem("role");
       } finally {
         setIsLoading(false);
       }
