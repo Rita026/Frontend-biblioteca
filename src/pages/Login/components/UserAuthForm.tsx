@@ -72,7 +72,7 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="sr-only">Usuario</FormLabel>
+                 <FormLabel htmlFor="email" className="sr-only">Correo electrónico</FormLabel>
                   <FormControl>
                     <Input
                       id="email"
@@ -82,7 +82,8 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
                       autoComplete="email"
                       autoCorrect="off"
                       disabled={isLoading}
-                      className="bg-gray-100 border-none"
+                      aria-invalid={!!form.formState.errors.email}
+                      className="bg-gray-100 border-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       {...field}
                     />
                   </FormControl>
@@ -95,16 +96,17 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="sr-only">Contraseña</FormLabel>
+                  <FormLabel htmlFor="password" className="sr-only">Contraseña</FormLabel>
                   <FormControl>
-                    <Input
+                   <Input
                       id="password"
                       placeholder="Contraseña"
                       type="password"
                       autoCapitalize="none"
                       autoComplete="current-password"
                       disabled={isLoading}
-                      className="bg-gray-100 border-none"
+                      aria-invalid={!!form.formState.errors.password}
+                      className="bg-gray-100 border-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       {...field}
                     />
                   </FormControl>
