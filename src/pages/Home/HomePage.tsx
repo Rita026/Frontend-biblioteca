@@ -3,13 +3,28 @@ import { getLibros, type Libro } from "@/APIs/libros.api";
 import LibrosTable from "@/components/shadcn-studio/table/table-16";
 import { Button } from "@/components/ui/button";
 import { RefreshCwIcon, PlusIcon, AlertCircle } from "lucide-react";
-import { Loader } from "@/components/common";
+import { Loader, BookModal, BookStatusModal } from "@/components/common";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function HomePage() {
   const [libros, setLibros] = useState<Libro[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLibro, setSelectedLibro] = useState<Libro | null>(null);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [selectedStatusLibro, setSelectedStatusLibro] = useState<Libro | null>(
+    null,
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [libroToDelete, setLibroToDelete] = useState<Libro | null>(null);
 
   const cargarLibros = async () => {
     try {
@@ -41,21 +56,23 @@ export default function HomePage() {
   const handleEdit = (libro: Libro) => {
     console.log("Editar libro:", libro);
     setStatusMessage(`Editando libro: ${libro.titulo}`);
-    // Aquí implementarías la lógica de edición
-    alert(`Editando: ${libro.titulo}`);
+    setSelectedLibro(libro);
+    setIsModalOpen(true);
   };
 
   const handleDelete = (libro: Libro) => {
-    console.log("Eliminar libro:", libro);
-    const confirmDelete = window.confirm(
-      `¿Estás seguro de eliminar: ${libro.titulo}?`,
-    );
-    if (confirmDelete) {
-      // Aquí implementarías la lógica de eliminación
-      console.log("Libro eliminado");
-      setStatusMessage(`Libro "${libro.titulo}" eliminado exitosamente`);
-      setTimeout(() => setStatusMessage(""), 3000);
-    }
+    setLibroToDelete(libro);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!libroToDelete) return;
+
+    // Aquí implementarías la lógica de eliminación
+    console.log("Eliminar libro:", libroToDelete.titulo);
+    setStatusMessage(`Libro "${libroToDelete.titulo}" eliminado exitosamente`);
+    setIsDeleteModalOpen(false);
+    setTimeout(() => setStatusMessage(""), 3000);
   };
 
   const handleRefresh = () => {
@@ -66,8 +83,16 @@ export default function HomePage() {
   const handleAddNew = () => {
     console.log("Agregar nuevo libro");
     setStatusMessage("Abriendo formulario para agregar un nuevo libro");
-    // Aquí implementarías la lógica para agregar un nuevo libro
-    alert("Abriendo formulario para agregar un nuevo libro");
+    setSelectedLibro(null);
+    setIsModalOpen(true);
+    setTimeout(() => setStatusMessage(""), 3000);
+  };
+
+  const handleSaveLibro = (libroData: Partial<Libro>) => {
+    console.log("Guardar libro:", libroData);
+    setStatusMessage(`Guardando libro...`);
+    // Aquí iría la llamada a la API para guardar
+    setIsModalOpen(false);
     setTimeout(() => setStatusMessage(""), 3000);
   };
 
@@ -167,14 +192,62 @@ export default function HomePage() {
             setStatusMessage(
               `Abriendo estado de: ${libro.titulo}, ${libro.total_copias} ${libro.total_copias === 1 ? "copia disponible" : "copias disponibles"}`,
             );
-            alert(
-              `Estado de: ${libro.titulo}\nCopias disponibles: ${libro.total_copias}`,
-            );
+            setSelectedStatusLibro(libro);
+            setIsStatusModalOpen(true);
             setTimeout(() => setStatusMessage(""), 3000);
           }}
           isLoading={isLoading}
         />
       </div>
+
+      <BookModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        libro={selectedLibro}
+        onSave={handleSaveLibro}
+      />
+
+      <BookStatusModal
+        isOpen={isStatusModalOpen}
+        onClose={() => setIsStatusModalOpen(false)}
+        libro={selectedStatusLibro}
+        onSave={(statuses) => {
+          console.log("Estados actualizados:", statuses);
+          setStatusMessage("Estados de copias actualizados");
+          setTimeout(() => setStatusMessage(""), 3000);
+        }}
+      />
+
+      {/* Modal Eliminar Libro */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Eliminar Libro</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700">
+              ¿Estás seguro de que deseas eliminar{" "}
+              <strong>{libroToDelete?.titulo}</strong>? Esta acción no se puede
+              deshacer.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+              onClick={handleConfirmDelete}
+            >
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
