@@ -8,7 +8,7 @@
  *  - Compatibilidad con lectores de pantalla
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { MemoryRouter } from "react-router-dom";
@@ -127,11 +127,13 @@ describe("Compatibilidad con lectores de pantalla", () => {
     ).toBeInTheDocument();
   });
 
-  test("UsuariosPage tiene un heading visible y legible", () => {
+  test("UsuariosPage tiene un heading visible y legible", async () => {
     render(<UsuariosPage />);
-    expect(
-      screen.getByRole("heading", { name: /usuarios/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: /usuarios/i }),
+      ).toBeInTheDocument();
+    });
   });
 
   test("Los elementos con fade-in no tienen aria-hidden que oculte contenido", () => {
@@ -175,12 +177,14 @@ describe("prefers-reduced-motion", () => {
     expect(result).toBe(false);
   });
 
-  test("Los componentes con fade-in renderizan aunque reduced-motion esté activo", () => {
+  test("Los componentes con fade-in renderizan aunque reduced-motion esté activo", async () => {
     // Las transiciones las desactiva el CSS, pero el componente debe seguir montándose
     render(<UsuariosPage />);
-    expect(
-      screen.getByRole("heading", { name: /usuarios/i }),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: /usuarios/i }),
+      ).toBeInTheDocument();
+    });
   });
 
   test("Los componentes con fade-in renderizan aunque reduced-motion esté activo (ListarLibros)", () => {
