@@ -30,3 +30,39 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Mock BroadcastChannel para pruebas de sincronización de pestañas
+const channelListeners: Record<string, ((event: any) => void)[]> = {};
+
+class MockBroadcastChannel {
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+    if (!channelListeners[name]) {
+      channelListeners[name] = [];
+    }
+  }
+
+  addEventListener = vi.fn((event, callback) => {
+    if (event === "message") {
+      channelListeners[this.name].push(callback);
+    }
+  });
+
+  removeEventListener = vi.fn((event, callback) => {
+    if (event === "message") {
+      channelListeners[this.name] = channelListeners[this.name].filter(
+        (cb) => cb !== callback,
+      );
+    }
+  });
+
+  postMessage = vi.fn((message) => {
+    channelListeners[this.name].forEach((callback) =>
+      callback({ data: message }),
+    );
+  });
+}
+
+global.BroadcastChannel = MockBroadcastChannel as any;
