@@ -26,9 +26,10 @@ const formSchema = z.object({
     .min(6, { message: "La contraseña debe tener al menos 6 caracteres" }),
 });
 
-interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
+export function UserAuthForm({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
   const navigate = useNavigate();
@@ -47,24 +48,40 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
     try {
       const response = await authApi.login(values);
-      
+
       // Guardar el rol en localStorage
       if (response.data?.rol) {
         localStorage.setItem("role", response.data.rol);
       } else if (response.rol) {
         localStorage.setItem("role", response.rol);
       }
-      
+
       navigate("/");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Login error:", err);
       // Validar si el error viene con detalles de Zod (backend)
-      if (err.errors && Array.isArray(err.errors)) {
-        const errorMessages = err.errors.map((e: any) => e.message).join(", ");
-        setError(errorMessages);
-      } else {
-        setError(err.message || "Credenciales inválidas");
+      let errorMessage = "Credenciales inválidas";
+
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "errors" in err &&
+        Array.isArray((err as Record<string, unknown>).errors)
+      ) {
+        const errors = (err as Record<string, unknown>).errors as Array<
+          Record<string, unknown>
+        >;
+        const errorMessages = errors
+          .map((e) => String(e.message || ""))
+          .join(", ");
+        errorMessage = errorMessages;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === "object" && err !== null && "message" in err) {
+        errorMessage = String((err as Record<string, unknown>).message);
       }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +97,9 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                 <FormLabel htmlFor="email" className="sr-only">Correo electrónico</FormLabel>
+                  <FormLabel htmlFor="email" className="sr-only">
+                    Correo electrónico
+                  </FormLabel>
                   <FormControl>
                     <Input
                       id="email"
@@ -104,9 +123,11 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="password" className="sr-only">Contraseña</FormLabel>
+                  <FormLabel htmlFor="password" className="sr-only">
+                    Contraseña
+                  </FormLabel>
                   <FormControl>
-                   <Input
+                    <Input
                       id="password"
                       placeholder="Contraseña"
                       type="password"
@@ -132,6 +153,16 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Continuar
             </Button>
+
+            <div className="text-center">
+              <Button
+                variant="link"
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
