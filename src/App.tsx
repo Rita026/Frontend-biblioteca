@@ -12,6 +12,8 @@ import ActivityPage from "./pages/Actividad/Activity";
 import UsuariosPage from "./pages/Usuarios/UsuariosPage";
 import PerfilPage from "./pages/Perfil/PerfilPage";
 import LoginPage from "./pages/Login/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPassword";
+import ResetPasswordPage from "./pages/ResetPassword";
 import NotFoundPage from "./pages/NotFound/NotFoundPage";
 import ServerErrorPage from "./pages/Error500/ServerErrorPage";
 
@@ -31,7 +33,10 @@ import { useTabSync } from "./hooks/useTabSync";
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const isLoginPage = location.pathname === "/login";
+  const isLoginPage =
+    location.pathname === "/login" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password";
 
   useTabSync(() => {
     localStorage.removeItem("role");
@@ -67,6 +72,8 @@ function App() {
       <AppLayout>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route
             path="/"
