@@ -18,6 +18,7 @@ interface LibrosTableProps {
   onDelete?: (libro: Libro) => void;
   onStatusClick?: (libro: Libro) => void;
   isLoading?: boolean;
+  canManageBooks?: boolean;
 }
 
 const LibrosTable = ({
@@ -26,6 +27,7 @@ const LibrosTable = ({
   onDelete,
   onStatusClick,
   isLoading = false,
+  canManageBooks = false,
 }: LibrosTableProps) => {
   const getEstadoColor = (totalCopias: number) => {
     if (totalCopias === 0) {
@@ -92,9 +94,11 @@ const LibrosTable = ({
               <TableHead scope="col" className="text-center">
                 Estado
               </TableHead>
-              <TableHead scope="col" className="w-0">
-                Acciones
-              </TableHead>
+              {canManageBooks && (
+                <TableHead scope="col" className="w-0">
+                  Acciones
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody aria-live="polite" aria-relevant="additions removals">
@@ -147,7 +151,7 @@ const LibrosTable = ({
                         className={`rounded-full ${getEstadoColor(libro.total_copias)}`}
                         onClick={() => onStatusClick(libro)}
                         title={getEstadoText(libro.total_copias)}
-                        aria-label={`Ver estado del libro ${libro.titulo}: ${getEstadoText(libro.total_copias)}, ${libro.total_copias} ${libro.total_copias === 1 ? "copia" : "copias"}`}
+                        aria-label={`Ver estado del libro ${libro.titulo}: ${getEstadoText(libro.total_copias)}, ${libro.total_copias === 1 ? "copia" : "copias"}`}
                       >
                         <BookCheckIcon className="h-5 w-5" aria-hidden="true" />
                       </Button>
@@ -163,42 +167,52 @@ const LibrosTable = ({
                     )}
                   </div>
                 </TableCell>
-                <TableCell role="cell" className="flex items-center gap-1">
-                  <div
-                    role="group"
-                    aria-label={`Acciones para ${libro.titulo}`}
-                  >
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full"
-                        aria-label={`Editar libro ${libro.titulo}`}
-                        onClick={() => onEdit(libro)}
-                        title="Editar libro"
-                      >
-                        <PencilIcon className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full hover:bg-destructive/10 hover:text-destructive"
-                        aria-label={`Eliminar libro ${libro.titulo}`}
-                        onClick={() => onDelete(libro)}
-                        title="Eliminar libro"
-                      >
-                        <Trash2Icon className="h-4 w-4" aria-hidden="true" />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
+
+                {canManageBooks && (
+                  <TableCell role="cell" className="flex items-center gap-1">
+                    <div
+                      role="group"
+                      aria-label={`Acciones para ${libro.titulo}`}
+                    >
+                      {onEdit && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full"
+                          aria-label={`Editar libro ${libro.titulo}`}
+                          onClick={() => onEdit(libro)}
+                          title="Editar libro"
+                        >
+                          <PencilIcon className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      )}
+                      {onDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="rounded-full hover:bg-destructive/10 hover:text-destructive"
+                          aria-label={`Eliminar libro ${libro.titulo}`}
+                          onClick={() => onDelete(libro)}
+                          title="Eliminar libro"
+                        >
+                          <Trash2Icon className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      {!canManageBooks && (
+        <p className="mt-2 text-xs text-muted-foreground" role="note">
+          Tu rol permite visualizar libros, pero no crear, editar o eliminar.
+        </p>
+      )}
+
       <div
         className="sr-only"
         role="status"
