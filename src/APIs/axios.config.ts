@@ -17,13 +17,9 @@ export const apiClient = axios.create({
 // Interceptor de solicitudes (opcional - para agregar logs o tokens adicionales)
 apiClient.interceptors.request.use(
   (config) => {
-    // Aquí puedes agregar headers adicionales si es necesario
-    // Por ejemplo, un token CSRF si tu backend lo requiere
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  () => Promise.reject(),
 );
 
 // Interceptor de respuestas (opcional - para manejar errores globalmente)
