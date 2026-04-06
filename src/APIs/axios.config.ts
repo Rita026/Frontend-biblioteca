@@ -27,11 +27,11 @@ apiClient.interceptors.request.use(
     // No agregar Authorization manual si backend usa cookie httpOnly
     return config;
   },
-  (error) => {
+  (_error) => {
     if (isDev) {
-      console.error("[API][RequestError]", error);
+      console.error("[API][RequestError]", _error);
     }
-    return Promise.reject(error);
+    return Promise.reject(_error);
   },
 );
 
