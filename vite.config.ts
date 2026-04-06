@@ -25,16 +25,14 @@ export default defineConfig({
     },
   },
 
-  // 🔥 ESTA ES LA CONFIG DE TEST QUE TE FALTABA
   test: {
     globals: true,
     environment: "jsdom",
 
-    // Evita errores como `global not found` en tests
     setupFiles: ["./src/test/setup.ts"],
 
     deps: {
-      inline: ["vitest-axe"],
+      include: ["vitest-axe"], // ← ✔️ aquí ya quedó
     },
 
     pool: "threads",
