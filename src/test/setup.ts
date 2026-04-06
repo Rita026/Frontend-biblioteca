@@ -65,4 +65,4 @@ class MockBroadcastChannel {
   });
 }
 
-global.BroadcastChannel = MockBroadcastChannel as any;
+(globalThis as any).BroadcastChannel = MockBroadcastChannel;
