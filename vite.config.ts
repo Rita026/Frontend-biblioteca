@@ -28,12 +28,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
-
     setupFiles: ["./src/test/setup.ts"],
 
-    deps: {
-      include: ["vitest-axe"], // ← ✔️ aquí ya quedó
-    },
+    // ❌ ELIMINADO -> Esta opción no existe en tu versión
+    // deps: { include: ["vitest-axe"] },
 
     pool: "threads",
     poolOptions: {
