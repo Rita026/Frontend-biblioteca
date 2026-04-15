@@ -1,5 +1,14 @@
-import { useEffect, useState } from "react";
-import { getLibros, type Libro } from "@/APIs/libros.api";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  getLibros,
+  createLibro,
+  updateLibro,
+  deleteLibro,
+  type Libro,
+  type LibroPayload,
+  type UpdateLibroPayload,
+  type LibrosApiError,
+} from "@/APIs/libros.api";
 import LibrosTable from "@/components/shadcn-studio/table/table-16";
 import { Button } from "@/components/ui/button";
 import { RefreshCwIcon, PlusIcon, AlertCircle } from "lucide-react";
@@ -11,10 +20,81 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { canManageBooks, getStoredRole } from "@/lib/auth";
+
+type UiErrorKind =
+  | "unauthorized"
+  | "forbidden"
+  | "server"
+  | "validation"
+  | "generic";
+
+function getUiErrorMessage(error: unknown): {
+  kind: UiErrorKind;
+  message: string;
+} {
+  const e = error as LibrosApiError | undefined;
+
+  if (e?.isUnauthorized || e?.status === 401) {
+    return {
+      kind: "unauthorized",
+      message:
+        "Tu sesión expiró o fue cerrada en otro dispositivo. Inicia sesión nuevamente.",
+    };
+  }
+
+  if (e?.isForbidden || e?.status === 403) {
+    return {
+      kind: "forbidden",
+      message: "No tienes permisos para realizar esta acción.",
+    };
+  }
+
+  if (e?.isServerError || (typeof e?.status === "number" && e.status >= 500)) {
+    return {
+      kind: "server",
+      message: "Ocurrió un error del servidor. Intenta nuevamente.",
+    };
+  }
+
+  if (e?.isValidation || e?.status === 400 || e?.status === 422) {
+    return {
+      kind: "validation",
+      message: e.message || "Los datos enviados no son válidos.",
+    };
+  }
+
+  return {
+    kind: "generic",
+    message: e?.message || "Ocurrió un error inesperado.",
+  };
+}
+
+function toLibroPayload(input: Partial<Libro>): LibroPayload {
+  return {
+    codigo_biblioteca: (input.codigo_biblioteca ?? "").trim(),
+    titulo: (input.titulo ?? "").trim(),
+    autores: (input.autores ?? "").trim(),
+    total_copias: Number(input.total_copias ?? 0),
+    isbn: (input.isbn ?? "").trim(),
+  };
+}
+
+function toUpdatePayload(input: Partial<Libro>): UpdateLibroPayload {
+  const out: UpdateLibroPayload = {};
+  if (typeof input.titulo === "string") out.titulo = input.titulo.trim();
+  if (typeof input.autores === "string") out.autores = input.autores.trim();
+  if (typeof input.total_copias === "number")
+    out.total_copias = Number(input.total_copias);
+  if (typeof input.isbn === "string") out.isbn = input.isbn.trim();
+  return out;
+}
 
 export default function HomePage() {
   const [libros, setLibros] = useState<Libro[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,74 +106,175 @@ export default function HomePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [libroToDelete, setLibroToDelete] = useState<Libro | null>(null);
 
-  const cargarLibros = async () => {
+  const role = useMemo(() => getStoredRole(), []);
+  const canWrite = useMemo(() => canManageBooks(role), [role]);
+
+  const loadLibros = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
       setStatusMessage("Cargando libros...");
+
       const data = await getLibros();
       setLibros(data);
+
       setStatusMessage(
         `${data.length} ${data.length === 1 ? "libro cargado" : "libros cargados"} exitosamente`,
       );
-      // Limpiar mensaje después de 3 segundos
-      setTimeout(() => setStatusMessage(""), 3000);
-    } catch (error) {
-      console.error("Error al cargar libros:", error);
-      setError(
-        "No se pudieron cargar los libros. Por favor, intenta de nuevo.",
-      );
-      setStatusMessage("Error al cargar los libros");
+      setTimeout(() => setStatusMessage(""), 2500);
+    } catch (rawError) {
+      const parsed = getUiErrorMessage(rawError);
+      setStatusMessage(parsed.message);
+
+      // 401 se maneja globalmente en el cliente HTTP (redirección/login)
+      // Aquí dejamos feedback por robustez.
+      if (parsed.kind === "unauthorized") {
+        setError(parsed.message);
+        return;
+      }
+
+      if (parsed.kind === "forbidden") {
+        setError(
+          "Tu cuenta no tiene permisos para acceder a esta información en este momento.",
+        );
+        return;
+      }
+
+      setError(parsed.message);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    cargarLibros();
   }, []);
 
+  useEffect(() => {
+    loadLibros();
+  }, [loadLibros]);
+
+  const handleRefresh = () => {
+    setStatusMessage("Actualizando lista de libros...");
+    void loadLibros();
+  };
+
+  const handleAddNew = () => {
+    if (!canWrite) {
+      toast.error("No tienes permisos para crear libros.");
+      return;
+    }
+    setSelectedLibro(null);
+    setIsModalOpen(true);
+  };
+
   const handleEdit = (libro: Libro) => {
-    console.log("Editar libro:", libro);
-    setStatusMessage(`Editando libro: ${libro.titulo}`);
+    if (!canWrite) {
+      toast.error("No tienes permisos para editar libros.");
+      return;
+    }
     setSelectedLibro(libro);
     setIsModalOpen(true);
   };
 
   const handleDelete = (libro: Libro) => {
+    if (!canWrite) {
+      toast.error("No tienes permisos para eliminar libros.");
+      return;
+    }
     setLibroToDelete(libro);
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!libroToDelete) return;
+    if (!canWrite) {
+      toast.error("No tienes permisos para eliminar libros.");
+      setIsDeleteModalOpen(false);
+      return;
+    }
 
-    // Aquí implementarías la lógica de eliminación
-    console.log("Eliminar libro:", libroToDelete.titulo);
-    setStatusMessage(`Libro "${libroToDelete.titulo}" eliminado exitosamente`);
-    setIsDeleteModalOpen(false);
-    setTimeout(() => setStatusMessage(""), 3000);
+    try {
+      setIsSubmitting(true);
+      await deleteLibro(libroToDelete.codigo_biblioteca);
+
+      setLibros((prev) =>
+        prev.filter(
+          (b) => b.codigo_biblioteca !== libroToDelete.codigo_biblioteca,
+        ),
+      );
+
+      toast.success(`Libro "${libroToDelete.titulo}" eliminado correctamente.`);
+      setStatusMessage(
+        `Libro "${libroToDelete.titulo}" eliminado exitosamente`,
+      );
+      setIsDeleteModalOpen(false);
+      setLibroToDelete(null);
+      setTimeout(() => setStatusMessage(""), 2500);
+    } catch (rawError) {
+      const parsed = getUiErrorMessage(rawError);
+
+      if (parsed.kind === "forbidden") {
+        toast.error("No tienes permisos para eliminar este libro.");
+      } else if (parsed.kind === "unauthorized") {
+        // Manejo global ya realizado por cliente HTTP
+      } else {
+        toast.error(parsed.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleRefresh = () => {
-    setStatusMessage("Actualizando lista de libros...");
-    cargarLibros();
-  };
+  const handleSaveLibro = async (libroData: Partial<Libro>) => {
+    if (!canWrite) {
+      toast.error("No tienes permisos para guardar libros.");
+      return;
+    }
 
-  const handleAddNew = () => {
-    console.log("Agregar nuevo libro");
-    setStatusMessage("Abriendo formulario para agregar un nuevo libro");
-    setSelectedLibro(null);
-    setIsModalOpen(true);
-    setTimeout(() => setStatusMessage(""), 3000);
-  };
+    try {
+      setIsSubmitting(true);
 
-  const handleSaveLibro = (libroData: Partial<Libro>) => {
-    console.log("Guardar libro:", libroData);
-    setStatusMessage(`Guardando libro...`);
-    // Aquí iría la llamada a la API para guardar
-    setIsModalOpen(false);
-    setTimeout(() => setStatusMessage(""), 3000);
+      if (selectedLibro) {
+        const payload = toUpdatePayload(libroData);
+        const updated = await updateLibro(
+          selectedLibro.codigo_biblioteca,
+          payload,
+        );
+
+        setLibros((prev) =>
+          prev.map((b) =>
+            b.codigo_biblioteca === selectedLibro.codigo_biblioteca
+              ? updated
+              : b,
+          ),
+        );
+
+        toast.success(`Libro "${updated.titulo}" actualizado correctamente.`);
+        setStatusMessage(`Libro "${updated.titulo}" actualizado exitosamente`);
+      } else {
+        const payload = toLibroPayload(libroData);
+        const created = await createLibro(payload);
+
+        setLibros((prev) => [created, ...prev]);
+        toast.success(`Libro "${created.titulo}" creado correctamente.`);
+        setStatusMessage(`Libro "${created.titulo}" creado exitosamente`);
+      }
+
+      setIsModalOpen(false);
+      setSelectedLibro(null);
+      setTimeout(() => setStatusMessage(""), 2500);
+    } catch (rawError) {
+      const parsed = getUiErrorMessage(rawError);
+
+      if (parsed.kind === "forbidden") {
+        toast.error("No tienes permisos para realizar esta acción.");
+      } else if (parsed.kind === "validation") {
+        toast.error(parsed.message);
+      } else if (parsed.kind === "unauthorized") {
+        // Manejo global ya realizado por cliente HTTP
+      } else {
+        toast.error(parsed.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
@@ -106,7 +287,6 @@ export default function HomePage() {
       role="main"
       aria-label="Gestión de libros de la biblioteca"
     >
-      {/* Screen reader announcements */}
       <div
         className="sr-only"
         role="status"
@@ -126,9 +306,9 @@ export default function HomePage() {
             onClick={handleRefresh}
             variant="outline"
             size="default"
-            disabled={isLoading}
+            disabled={isLoading || isSubmitting}
             aria-label="Actualizar lista de libros"
-            aria-disabled={isLoading}
+            aria-disabled={isLoading || isSubmitting}
           >
             <RefreshCwIcon
               className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
@@ -136,15 +316,32 @@ export default function HomePage() {
             />
             Actualizar
           </Button>
-          <Button
-            onClick={handleAddNew}
-            size="default"
-            aria-label="Agregar nuevo libro a la biblioteca"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" aria-hidden="true" />
-            Nuevo Libro
-          </Button>
+
+          {canWrite && (
+            <Button
+              onClick={handleAddNew}
+              size="default"
+              disabled={isSubmitting}
+              aria-label="Agregar nuevo libro a la biblioteca"
+            >
+              <PlusIcon className="h-4 w-4 mr-2" aria-hidden="true" />
+              Nuevo Libro
+            </Button>
+          )}
         </nav>
+
+        {!canWrite && (
+          <div
+            className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4"
+            role="status"
+            aria-live="polite"
+          >
+            <p className="text-amber-800 text-sm">
+              Estás en modo solo lectura. No tienes permisos para crear, editar
+              o eliminar libros.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div
@@ -158,12 +355,8 @@ export default function HomePage() {
               aria-hidden="true"
             />
             <div className="flex-1">
-              <p className="text-red-800 font-medium" id="error-title">
-                Error
-              </p>
-              <p className="text-red-600 text-sm" id="error-description">
-                {error}
-              </p>
+              <p className="text-red-800 font-medium">Error</p>
+              <p className="text-red-600 text-sm">{error}</p>
             </div>
             <Button
               onClick={handleRefresh}
@@ -185,16 +378,15 @@ export default function HomePage() {
       >
         <LibrosTable
           libros={libros}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={canWrite ? handleEdit : undefined}
+          onDelete={canWrite ? handleDelete : undefined}
           onStatusClick={(libro) => {
-            console.log("Ver estado:", libro);
             setStatusMessage(
               `Abriendo estado de: ${libro.titulo}, ${libro.total_copias} ${libro.total_copias === 1 ? "copia disponible" : "copias disponibles"}`,
             );
             setSelectedStatusLibro(libro);
             setIsStatusModalOpen(true);
-            setTimeout(() => setStatusMessage(""), 3000);
+            setTimeout(() => setStatusMessage(""), 2500);
           }}
           isLoading={isLoading}
         />
@@ -202,7 +394,11 @@ export default function HomePage() {
 
       <BookModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          if (isSubmitting) return;
+          setIsModalOpen(false);
+          setSelectedLibro(null);
+        }}
         libro={selectedLibro}
         onSave={handleSaveLibro}
       />
@@ -214,12 +410,17 @@ export default function HomePage() {
         onSave={(statuses) => {
           console.log("Estados actualizados:", statuses);
           setStatusMessage("Estados de copias actualizados");
-          setTimeout(() => setStatusMessage(""), 3000);
+          setTimeout(() => setStatusMessage(""), 2500);
         }}
       />
 
-      {/* Modal Eliminar Libro */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+      <Dialog
+        open={isDeleteModalOpen}
+        onOpenChange={(open) => {
+          if (isSubmitting) return;
+          setIsDeleteModalOpen(open);
+        }}
+      >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Eliminar Libro</DialogTitle>
@@ -235,6 +436,7 @@ export default function HomePage() {
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isSubmitting}
             >
               Cancelar
             </Button>
@@ -242,8 +444,9 @@ export default function HomePage() {
               variant="destructive"
               className="bg-red-600 hover:bg-red-700"
               onClick={handleConfirmDelete}
+              disabled={isSubmitting}
             >
-              Eliminar
+              {isSubmitting ? "Eliminando..." : "Eliminar"}
             </Button>
           </DialogFooter>
         </DialogContent>
